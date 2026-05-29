@@ -5,8 +5,8 @@
 #include "waveform.h"
 
 #define ENCODER1_ADDR 0x36 //default I2C address of device
-#define ENCODER2_ADDR 0x37 //default I2C address of device
-#define ENCODER3_ADDR 0x38 //default I2C address of device
+#define ENCODER2_ADDR 0x37 
+#define ENCODER3_ADDR 0x38 
 
 #define SS_SWITCH 24 //hardware value
 #define SS_NEOPIX 6
