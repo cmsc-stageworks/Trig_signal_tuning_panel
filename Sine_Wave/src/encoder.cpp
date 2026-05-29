@@ -14,7 +14,7 @@ void init_encoder() {
 }
 //encoders are 4 times a click
 void loop_encoder() {
-    int32_t encoder_1_position = encoder_1.getEncoderPosition();
+    int32_t encoder_1_position = getBoundedEncoderPosition(&encoder_1);
     Serial.println(encoder_1_position);
 }
 
