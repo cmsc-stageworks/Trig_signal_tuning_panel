@@ -23,6 +23,8 @@ void init_encoder() {
     frequency_encoder.enableEncoderInterrupt();
     amplitude_encoder.enableEncoderInterrupt();
     phase_shift_encoder.enableEncoderInterrupt();
+
+    Serial.println("encoders initialized");
 }
 //encoders are 4 times a click
 void loop_encoder() {

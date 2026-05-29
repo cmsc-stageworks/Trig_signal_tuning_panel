@@ -8,10 +8,10 @@
 extern SPIClass mainBoardSpi;
 
 static Adafruit_ILI9341 target_screen = Adafruit_ILI9341(&mainBoardSpi, MAIN_BOARD_LCD_DC, 
-    MAIN_BOARD_LCD_1_CS, MAIN_BOARD_LCD_RESET);
+    MAIN_BOARD_LCD_1_CS, -1);
 
 static Adafruit_ILI9341 controlled_screen = Adafruit_ILI9341(&mainBoardSpi, MAIN_BOARD_LCD_DC, 
-    MAIN_BOARD_LCD_2_CS, MAIN_BOARD_LCD_RESET);
+    MAIN_BOARD_LCD_2_CS, -1);
 
 static waveform current_waveform_puzzle;
 static waveform current_user_attempt;
@@ -71,10 +71,12 @@ void init_trig() {
     target_screen.setRotation(1); //width is the long way
     controlled_screen.begin();
     controlled_screen.setRotation(1);
+    target_screen.fillScreen(target_screen.color565(0, 255, 255));
+    controlled_screen.fillScreen(controlled_screen.color565(0, 255, 255));
+    Serial.println("GFX initialized");
 }
 
 void loop_trig() {
-    //target_screen.fillScreen(target_screen.color565(255, 255, 255));
     if (has_current_puzzle) {
         draw_trig(&target_screen, current_waveform_puzzle);
         draw_trig(&controlled_screen, current_user_attempt);
