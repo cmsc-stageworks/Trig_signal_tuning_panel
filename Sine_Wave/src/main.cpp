@@ -10,14 +10,15 @@
 
 extern SPIClass mainBoardSpi;
 
-void setup(){
+void setup() {
   MainBoardStart(false);
-  //init_trig();
+  init_trig();
   init_encoder();
 }
 
-void loop(){
-  //loop_trig();
+void loop() {
+  set_user_input(get_user_input());
+  loop_trig();
   loop_encoder();
   delay(10);
 }

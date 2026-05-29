@@ -1,28 +1,39 @@
 #include "encoder.h"
 #include <Adafruit_seesaw.h>
 
-Adafruit_seesaw encoder_1;
+Adafruit_seesaw frequency_encoder;
+Adafruit_seesaw amplitude_encoder;
+Adafruit_seesaw phase_shift_encoder;
 
 void init_encoder() {
     Serial.begin(115200);
-    if(!encoder_1.begin(ENCODER1_ADDR)) {
-        Serial.println("can't connect to encoder 1");
+    if(!frequency_encoder.begin(ENCODER1_ADDR)) {
+        Serial.println("can't connect to frequency encoder");
     }
-    encoder_1.pinMode(SS_SWITCH, INPUT_PULLUP);
+    if(!amplitude_encoder.begin(ENCODER1_ADDR)) {
+        Serial.println("can't connect to amplitude encoder");
+    }
+    if(!phase_shift_encoder.begin(ENCODER1_ADDR)) {
+        Serial.println("can't connect to phase shift encoder");
+    }
+    frequency_encoder.pinMode(SS_SWITCH, INPUT_PULLUP);
+    amplitude_encoder.pinMode(SS_SWITCH, INPUT_PULLUP);
+    phase_shift_encoder.pinMode(SS_SWITCH, INPUT_PULLUP);
 
-    encoder_1.enableEncoderInterrupt();
+    frequency_encoder.enableEncoderInterrupt();
+    amplitude_encoder.enableEncoderInterrupt();
+    phase_shift_encoder.enableEncoderInterrupt();
 }
 //encoders are 4 times a click
 void loop_encoder() {
-    int32_t encoder_1_position = getBoundedEncoderPosition(&encoder_1);
-    Serial.println(encoder_1_position);
+    return;
 }
 
 #define NUM_ENCODER_CLICKS_IN_RANGE 16
 //encoders are 4 times a click
 #define MAX_ENCODER_VALUE (NUM_ENCODER_CLICKS_IN_RANGE * 4)
 
-int32_t getBoundedEncoderPosition(Adafruit_seesaw *encoder){
+int32_t getBoundedEncoderPosition(Adafruit_seesaw *encoder){ //returns an int from 0 to 16
     int32_t pos = encoder->getEncoderPosition();
     int32_t unbounded_pos = pos;
     pos = (pos >= 0) ? pos : 0;
@@ -30,5 +41,15 @@ int32_t getBoundedEncoderPosition(Adafruit_seesaw *encoder){
     if (pos != unbounded_pos) {
         encoder->setEncoderPosition(pos);
     }
-    return pos;
+    return pos / 4;
+}
+
+waveform get_user_input() {
+    return {getBoundedEncoderPosition(&frequency_encoder), getBoundedEncoderPosition(&amplitude_encoder), getBoundedEncoderPosition(&phase_shift_encoder)};
+}
+
+void override_user_input(waveform new_waveform) {
+    frequency_encoder.setEncoderPosition(new_waveform.frequency * 4);
+    amplitude_encoder.setEncoderPosition(new_waveform.amplitude * 4);
+    phase_shift_encoder.setEncoderPosition(new_waveform.phase_shift * 4);
 }

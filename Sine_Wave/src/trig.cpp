@@ -16,14 +16,7 @@ static waveform current_waveform_puzzle;
 static waveform current_user_attempt;
 static boolean has_current_puzzle;
 
-struct waveform {
-    float amplitude;
-    uint16_t frequency;
-    uint16_t phase_shift;
-};
-
-
-uint8_t read_knob(){
+uint8_t read_knob() {
     //implement this please
     //returns a value from 0 - 8
     return 1;
@@ -46,10 +39,6 @@ uint8_t read_knob(){
             
     }
 */
-float example_trig_function(float x){
-    return sin(x);
-}
-
 float normalize(uint16_t x) {
     float MIN_NUM_HORIZ_PERIODS_IN_WIDTH = 0.8;
     uint16_t w = target_screen.width();
@@ -65,7 +54,7 @@ uint16_t denormalize(uint16_t y) { //y goes from -1 to 1
     return output;
 }
 
-void draw_trig(Adafruit_ILI9341 *screen, waveform function_to_draw){
+void draw_trig(Adafruit_ILI9341 *screen, waveform function_to_draw) {
     screen->fillScreen(screen->color565(0,0,0));
     int h = screen->height();
     int w = screen->width();
@@ -74,14 +63,14 @@ void draw_trig(Adafruit_ILI9341 *screen, waveform function_to_draw){
     }
 }
 
-void init_trig(){
+void init_trig() {
     target_screen.begin();
     target_screen.setRotation(1); //width is the long way
     controlled_screen.begin();
     controlled_screen.setRotation(1);
 }
 
-void loop_trig(){
+void loop_trig() {
     //target_screen.fillScreen(target_screen.color565(255, 255, 255));
     if (has_current_puzzle) {
         draw_trig(&target_screen, current_waveform_puzzle);
@@ -96,4 +85,20 @@ void check_puzzle_completion() {
         has_current_puzzle = false;
         //report puzzle completion somehow
     }
+}
+
+void set_waveform_puzzle(waveform puzzle) {
+    current_waveform_puzzle = puzzle;
+}
+
+waveform get_waveform_puzzle() {
+    return current_waveform_puzzle;
+}
+
+void set_user_input(waveform puzzle) {
+    current_user_attempt = puzzle;
+}
+
+waveform get_user_input() {
+    return current_user_attempt;
 }
