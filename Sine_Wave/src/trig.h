@@ -2,6 +2,8 @@
 #define TRIG_H
 
 #include "waveform.h"
+#include <Adafruit_seesaw.h>
+
 
 void init_trig();
 

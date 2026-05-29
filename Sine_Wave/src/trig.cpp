@@ -3,6 +3,7 @@
 #include "MainBoardPinout.h"
 #include "MainBoard.h"
 #include <math.h>
+#include <Adafruit_seesaw.h>
 
 extern SPIClass mainBoardSpi;
 
@@ -15,6 +16,8 @@ static Adafruit_ILI9341 controlled_screen = Adafruit_ILI9341(&mainBoardSpi, MAIN
 static waveform current_waveform_puzzle;
 static waveform current_user_attempt;
 static boolean has_current_puzzle;
+void check_puzzle_completion();
+
 
 uint8_t read_knob() {
     //implement this please
@@ -97,8 +100,4 @@ waveform get_waveform_puzzle() {
 
 void set_user_input(waveform puzzle) {
     current_user_attempt = puzzle;
-}
-
-waveform get_user_input() {
-    return current_user_attempt;
 }

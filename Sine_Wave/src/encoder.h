@@ -3,6 +3,7 @@
 
 #include <arduino.h>
 #include "waveform.h"
+#include <Adafruit_seesaw.h>
 
 #define ENCODER1_ADDR 0x36 //default I2C address of device
 #define ENCODER2_ADDR 0x37 //default I2C address of device
