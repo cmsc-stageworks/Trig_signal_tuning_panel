@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "SP8T Rotary Switch")(type "KiCad")(uri "M:/College/data-types-and-strings-lab-WelverinH20/Trig_signal_tuning_panel/Kicad_Project/Custoom_Components/5925_Library/2025-11-07_01-41-03.kicad_sym")(options "")(descr ""))
+  (lib (name "JST_Connector")(type "KiCad")(uri "M:/College/data-types-and-strings-lab-WelverinH20/Trig_signal_tuning_panel/Kicad_Project/Custoom_Components/JST_Connector/2025-11-14_00-59-08.kicad_sym")(options "")(descr ""))
+)
