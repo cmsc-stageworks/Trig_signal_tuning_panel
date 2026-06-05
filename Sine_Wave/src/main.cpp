@@ -15,6 +15,8 @@ void setup() {
   MainBoardStart(false);
   init_trig();
   init_encoder();
+  waveform puzzle = {5, 0.5f, 0};
+  set_waveform_puzzle(puzzle);
   Serial.println("setup complete");
 }
 

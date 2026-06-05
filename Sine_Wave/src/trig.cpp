@@ -49,7 +49,7 @@ float normalize(uint16_t x) {
     return x_fractional * MIN_NUM_HORIZ_PERIODS_IN_WIDTH * 2 * PI;
 }
 
-uint16_t denormalize(uint16_t y) { //y goes from -1 to 1
+uint16_t denormalize(float y) { //y goes from -1 to 1
     float MAX_AMPLITUDE_AS_FRACTION_OF_HEIGHT = 0.7;
     uint16_t h = target_screen.height();
     float y_as_float = y * h * MAX_AMPLITUDE_AS_FRACTION_OF_HEIGHT / 2; //divide by 2 because the input has range 2
@@ -62,11 +62,13 @@ void draw_trig(Adafruit_ILI9341 *screen, waveform function_to_draw) {
     int h = screen->height();
     int w = screen->width();
     for(int x=0; x<w; x++){
-        screen->drawPixel(x, denormalize(function_to_draw.amplitude * sin(function_to_draw.frequency * (function_to_draw.phase_shift + normalize(x)))), screen->color565(74, 242, 98));
+        screen->drawPixel(x, denormalize(function_to_draw.amplitude * sin(function_to_draw.frequency * ((float) function_to_draw.phase_shift + normalize(x)))), screen->color565(74, 242, 98));
     }
 }
 
 void init_trig() {
+    pinMode(MAIN_BOARD_LCD_RESET, OUTPUT);
+    digitalWrite(MAIN_BOARD_LCD_RESET, HIGH);
     target_screen.begin();
     target_screen.setRotation(1); //width is the long way
     controlled_screen.begin();
@@ -74,6 +76,7 @@ void init_trig() {
     target_screen.fillScreen(target_screen.color565(0, 255, 255));
     controlled_screen.fillScreen(controlled_screen.color565(0, 255, 255));
     Serial.println("GFX initialized");
+    target_screen.fillScreen(target_screen.color565(0,255,0));
 }
 
 void loop_trig() {
@@ -94,6 +97,7 @@ void check_puzzle_completion() {
 
 void set_waveform_puzzle(waveform puzzle) {
     current_waveform_puzzle = puzzle;
+    has_current_puzzle = true;
 }
 
 waveform get_waveform_puzzle() {
