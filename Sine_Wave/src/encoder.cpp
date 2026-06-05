@@ -48,7 +48,7 @@ int32_t getBoundedEncoderPosition(Adafruit_seesaw *encoder){ //returns an int fr
 
 waveform get_user_input() {
     // return {getBoundedEncoderPosition(&frequency_encoder), getBoundedEncoderPosition(&amplitude_encoder), getBoundedEncoderPosition(&phase_shift_encoder)};
-    return {getBoundedEncoderPosition(&frequency_encoder), 0.4, 0};
+    return {getBoundedEncoderPosition(&frequency_encoder), 0.5, 0};
 
 }
 
