@@ -10,10 +10,10 @@ void init_encoder() {
     if(!frequency_encoder.begin(ENCODER1_ADDR)) {
         Serial.println("can't connect to frequency encoder");
     }
-    if(!amplitude_encoder.begin(ENCODER1_ADDR)) {
+    if(!amplitude_encoder.begin(ENCODER2_ADDR)) {
         Serial.println("can't connect to amplitude encoder");
     }
-    if(!phase_shift_encoder.begin(ENCODER1_ADDR)) {
+    if(!phase_shift_encoder.begin(ENCODER3_ADDR)) {
         Serial.println("can't connect to phase shift encoder");
     }
     frequency_encoder.pinMode(SS_SWITCH, INPUT_PULLUP);

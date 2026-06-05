@@ -11,9 +11,11 @@
 extern SPIClass mainBoardSpi;
 
 void setup() {
+
   MainBoardStart(false);
   init_trig();
   init_encoder();
+  Serial.println("setup complete");
 }
 
 void loop() {
