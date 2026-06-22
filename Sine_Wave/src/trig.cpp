@@ -4,6 +4,7 @@
 #include "MainBoard.h"
 #include <math.h>
 #include <Adafruit_seesaw.h>
+#include <Arduino.h>
 
 extern SPIClass mainBoardSpi;
 
@@ -13,10 +14,15 @@ static Adafruit_ILI9341 target_screen = Adafruit_ILI9341(&mainBoardSpi, MAIN_BOA
 static Adafruit_ILI9341 controlled_screen = Adafruit_ILI9341(&mainBoardSpi, MAIN_BOARD_LCD_DC, 
     MAIN_BOARD_LCD_2_CS, -1);
 
-static waveform current_waveform_puzzle;
-static waveform current_user_attempt;
+static waveform target_puzzle;
+static waveform current_attempt;
 static boolean has_current_puzzle;
 void check_puzzle_completion();
+bool check_puzzle_update();
+float last_amplitude;
+float last_frequency;
+float last_phase_shift;
+
 
 
 uint8_t read_knob() {
@@ -57,13 +63,19 @@ uint16_t denormalize(float y) { //y goes from -1 to 1
     return output;
 }
 
-void draw_trig(Adafruit_ILI9341 *screen, waveform function_to_draw) {
+void draw_trig(Adafruit_ILI9341 *screen, waveform target, waveform attempt) {
     screen->fillScreen(screen->color565(0,0,0));
     int h = screen->height();
     int w = screen->width();
+    //draw target waveform
     for(int x=0; x<w; x++){
-        screen->drawPixel(x, denormalize(function_to_draw.amplitude * sin(function_to_draw.frequency * ((float) function_to_draw.phase_shift + normalize(x)))), screen->color565(74, 242, 98));
+        screen->drawPixel(x, denormalize(target.amplitude * sin(target.frequency * ((float) target.phase_shift + normalize(x)))), screen->color565(74, 242, 98));
     }
+    //draw attempted waveform
+    for(int x=0; x<w; x++){
+        screen->drawPixel(x, denormalize(attempt.amplitude * sin(attempt.frequency * ((float) attempt.phase_shift + normalize(x)))), screen->color565(242, 74, 98));
+    }
+    //need to try combining with hardware
 }
 
 void init_trig() {
@@ -80,30 +92,50 @@ void init_trig() {
 }
 
 void loop_trig() {
-    if (has_current_puzzle) {
-        draw_trig(&target_screen, current_waveform_puzzle);
-        draw_trig(&controlled_screen, current_user_attempt);
+    Serial.println("in trig loop");
+    if (has_current_puzzle&&check_puzzle_update()) {
+        draw_trig(&controlled_screen, target_puzzle, current_attempt);
+        //draw_trig(&controlled_screen, current_user_attempt);
         check_puzzle_completion();
     }
 }
 
+bool check_puzzle_update() {
+    Serial.println("checking puzzle update");
+    bool updated = false;
+    if (current_attempt.amplitude != last_amplitude) {
+        last_amplitude = current_attempt.amplitude;
+        updated = true;
+    }
+    if (current_attempt.frequency != last_frequency) {
+        last_frequency = current_attempt.frequency;
+        updated = true;
+    }
+    if (current_attempt.phase_shift != last_phase_shift) {
+        last_phase_shift = current_attempt.phase_shift;
+        updated = true;
+    }
+    return updated;
+}
+
 void check_puzzle_completion() {
-    if ((current_user_attempt.amplitude == current_waveform_puzzle.amplitude) && (current_user_attempt.frequency == current_waveform_puzzle.frequency)) {
+    if ((current_attempt.amplitude == target_puzzle.amplitude) && (current_attempt.frequency == target_puzzle.frequency)) {
         //doesn't check phase shift yet
         has_current_puzzle = false;
+        Serial.println("puzzle complete!");
         //report puzzle completion somehow
     }
 }
 
 void set_waveform_puzzle(waveform puzzle) {
-    current_waveform_puzzle = puzzle;
+    target_puzzle = puzzle;
     has_current_puzzle = true;
 }
 
 waveform get_waveform_puzzle() {
-    return current_waveform_puzzle;
+    return target_puzzle;
 }
 
 void set_user_input(waveform puzzle) {
-    current_user_attempt = puzzle;
+    current_attempt = puzzle;
 }

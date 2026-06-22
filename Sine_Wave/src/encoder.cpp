@@ -44,6 +44,7 @@ int32_t getBoundedEncoderPosition(Adafruit_seesaw *encoder){ //returns an int fr
         encoder->setEncoderPosition(pos);
     }
     return pos / 4;
+    //probably need to remove /4 to make every click change the waveform
 }
 
 waveform get_user_input() {
