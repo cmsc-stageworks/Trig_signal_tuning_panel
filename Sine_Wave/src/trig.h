@@ -16,4 +16,6 @@ void set_user_input(waveform puzzle); //used my main loop to record the user's a
 //override_user_input in encoder.h is used to override the user's actions
 //get_user_input is also in encoder.h
 
+waveform create_random_puzzle();
+
 #endif

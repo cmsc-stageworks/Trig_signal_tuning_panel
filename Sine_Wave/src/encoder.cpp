@@ -31,9 +31,7 @@ void loop_encoder() {
     return;
 }
 
-#define NUM_ENCODER_CLICKS_IN_RANGE 16
-//encoders are 4 times a click
-#define MAX_ENCODER_VALUE (NUM_ENCODER_CLICKS_IN_RANGE * 4)
+#define MAX_ENCODER_VALUE 16
 
 int32_t getBoundedEncoderPosition(Adafruit_seesaw *encoder){ //returns an int from 0 to 16
     int32_t pos = encoder->getEncoderPosition();
@@ -43,7 +41,7 @@ int32_t getBoundedEncoderPosition(Adafruit_seesaw *encoder){ //returns an int fr
     if (pos != unbounded_pos) {
         encoder->setEncoderPosition(pos);
     }
-    return pos / 4;
+    return pos;
     //probably need to remove /4 to make every click change the waveform
 }
 
