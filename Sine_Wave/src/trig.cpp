@@ -1,4 +1,5 @@
 #include <Adafruit_ILI9341.h>
+#include <Adafruit_ST7796S.h>
 #include "trig.h"
 #include "MainBoardPinout.h"
 #include "MainBoard.h"
@@ -9,11 +10,7 @@
 
 extern SPIClass mainBoardSpi;
 
-static Adafruit_ILI9341 target_screen = Adafruit_ILI9341(&mainBoardSpi, MAIN_BOARD_LCD_DC, 
-    MAIN_BOARD_LCD_1_CS, -1);
-
-static Adafruit_ILI9341 controlled_screen = Adafruit_ILI9341(&mainBoardSpi, MAIN_BOARD_LCD_DC, 
-    MAIN_BOARD_LCD_2_CS, -1);
+static Adafruit_ST7796S screen = Adafruit_ST7796S(&mainBoardSpi, MAIN_BOARD_LCD_1_CS, MAIN_BOARD_LCD_DC, MAIN_BOARD_LCD_RESET);
 
 static waveform target_puzzle;
 static waveform current_attempt;
@@ -51,57 +48,71 @@ uint8_t read_knob() {
 */
 float normalize(uint16_t x) {
     float MIN_NUM_HORIZ_PERIODS_IN_WIDTH = 0.8;
-    uint16_t w = target_screen.width();
-    float x_fractional = x / (float)w;
+    uint16_t w = screen.width();
+    float x_fractional = (x - (w/2)) / (float)w;
     return x_fractional * MIN_NUM_HORIZ_PERIODS_IN_WIDTH * 2 * PI;
 }
 
 uint16_t denormalize(float y) { //y goes from -1 to 1
     float MAX_AMPLITUDE_AS_FRACTION_OF_HEIGHT = 0.7;
-    uint16_t h = target_screen.height();
+    uint16_t h = screen.height();
     float y_as_float = y * h * MAX_AMPLITUDE_AS_FRACTION_OF_HEIGHT / 2; //divide by 2 because the input has range 2
     uint16_t output =  (h/2) + (float)y_as_float;
     return output;
 }
 
-void draw_trig(Adafruit_ILI9341 *screen, waveform target, waveform attempt) {
-    screen->fillScreen(screen->color565(0,0,0));
+static const uint8_t frequencyConverter[16] = {0,1,2,3,4,5,6,7,8,9,10,12,14,16,18,20};
+
+void draw_trig(Adafruit_ST7796S *screen, waveform target, waveform attempt, waveform old_target, waveform old_attempt) {
     int h = screen->height();
     int w = screen->width();
     //draw waveforms
-    uint16_t last_target = 0;
-    uint16_t last_attempt = 0;
-    uint16_t current_target_y = denormalize(target.amplitude * sin(target.frequency * ((float) target.phase_shift + normalize(0))));
-    uint16_t current_attempt_y = denormalize(attempt.amplitude * sin(attempt.frequency * ((float) attempt.phase_shift + normalize(0))));
+    uint16_t old_last_target_y = 0;
+    uint16_t old_last_attempt_y = 0;
+    uint16_t last_target_y = 0;
+    uint16_t last_attempt_y = 0;
+    uint16_t old_current_target_y = denormalize(old_target.amplitude * sin(frequencyConverter[old_target.frequency] * ((float) old_target.phase_shift + normalize(0))));
+    uint16_t old_current_attempt_y = denormalize(old_attempt.amplitude * sin(frequencyConverter[old_attempt.frequency] * ((float) old_attempt.phase_shift + normalize(0))));
+    uint16_t current_target_y = denormalize(target.amplitude * sin(frequencyConverter[target.frequency] * ((float) target.phase_shift + normalize(0))));
+    uint16_t current_attempt_y = denormalize(attempt.amplitude * sin(frequencyConverter[attempt.frequency] * ((float) attempt.phase_shift + normalize(0))));
     for(int x=1; x<w; x++){ //skip the first one because we just took care of it
-        uint16_t last_target_y = current_target_y;
-        uint16_t last_attempt_y = current_attempt_y;
-        current_target_y = denormalize(target.amplitude * sin(target.frequency * ((float) target.phase_shift + normalize(x))));
-        current_attempt_y = denormalize(attempt.amplitude * sin(attempt.frequency * ((float) attempt.phase_shift + normalize(x))));
+        old_last_attempt_y = old_current_attempt_y;
+        last_attempt_y = current_attempt_y;
+        old_current_attempt_y = denormalize(old_attempt.amplitude * sin(frequencyConverter[old_attempt.frequency] * ((float) old_attempt.phase_shift + normalize(x))));
+        current_attempt_y = denormalize(attempt.amplitude * sin(frequencyConverter[attempt.frequency] * ((float) attempt.phase_shift + normalize(x))));
+        old_last_target_y = old_current_target_y;
+        last_target_y = current_target_y;
+        old_current_target_y = denormalize(old_target.amplitude * sin(frequencyConverter[old_target.frequency] * ((float) old_target.phase_shift + normalize(x))));
+        current_target_y = denormalize(target.amplitude * sin(frequencyConverter[target.frequency] * ((float) target.phase_shift + normalize(x))));
+        screen->drawLine(x-1, old_last_target_y, x, old_current_target_y, 0); //draw over the last line
+        if (((x/(old_attempt.frequency >= 8 ? 1 : 3)) % 2) == 0) {
+            screen->drawLine(x-1, old_last_attempt_y, x, old_current_attempt_y, 0);
+        }
         screen->drawLine(x-1, last_target_y, x, current_target_y, screen->color565(74, 242, 98));
-        screen->drawLine(x-1, last_attempt_y, x, current_attempt_y, screen->color565(242, 74, 98));
+        if (((x/(attempt.frequency >= 8 ? 1 : 3)) % 2) == 0) {
+            screen->drawLine(x-1, last_attempt_y, x, current_attempt_y, screen->color565(242, 74, 98));
+        }
     }
 }
 
 void init_trig() {
     pinMode(MAIN_BOARD_LCD_RESET, OUTPUT);
     digitalWrite(MAIN_BOARD_LCD_RESET, HIGH);
-    target_screen.begin();
-    target_screen.setRotation(1); //width is the long way
-    controlled_screen.begin();
-    controlled_screen.setRotation(1);
-    target_screen.fillScreen(target_screen.color565(0, 255, 255));
-    controlled_screen.fillScreen(controlled_screen.color565(0, 255, 255));
+    screen.init(320, 480, 0, 0, ST7796S_BGR);
+    screen.setRotation(1); //width is the long way
+    screen.invertDisplay(true);
+    screen.fillScreen(screen.color565(0, 255, 255));
     Serial.println("GFX initialized");
-    target_screen.fillScreen(target_screen.color565(0,255,0));
+    screen.fillScreen(screen.color565(0,0,0));
 }
 
 void loop_trig() {
     Serial.println("in trig loop");
     if (has_current_puzzle&&check_puzzle_update()) {
-        draw_trig(&controlled_screen, target_puzzle, current_attempt);
-        //draw_trig(&target_screen, target_puzzle);
-        //draw_trig(&controlled_screen, current_user_attempt);
+        static waveform old_target = target_puzzle, last_attempt = current_attempt;
+        draw_trig(&screen, target_puzzle, current_attempt, old_target, last_attempt);
+        old_target = target_puzzle;
+        last_attempt = current_attempt;
         check_puzzle_completion();
     }
 }
@@ -147,7 +158,7 @@ waveform create_random_puzzle() {
     waveform puzzle;
     puzzle.frequency = random(1, 16);
     puzzle.amplitude = .5f;//random(0, 10) / 10.0f;
-    puzzle.phase_shift = 0;//random(0, 16);
+    puzzle.phase_shift = 0;//random(0, 15);
     return puzzle;
 }
 

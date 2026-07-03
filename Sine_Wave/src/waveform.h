@@ -4,9 +4,9 @@
 #include <Arduino.h>
 
 struct waveform {
-    uint16_t frequency; //1-16
+    uint16_t frequency; //1-15
     float amplitude; //0-1
-    uint16_t phase_shift;
+    uint16_t phase_shift; //0-15
 };
 
 #endif

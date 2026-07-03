@@ -2,6 +2,7 @@
 #include <ESP32Servo.h>
 #include <MainBoard.h>
 #include <Adafruit_ILI9341.h>
+#include <Adafruit_ST7796S.h>
 #include <Wire.h>
 #include <Ethernet3.h>
 #include <SdFat.h>

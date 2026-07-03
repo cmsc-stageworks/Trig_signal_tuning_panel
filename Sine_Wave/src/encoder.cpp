@@ -31,7 +31,7 @@ void loop_encoder() {
     return;
 }
 
-#define MAX_ENCODER_VALUE 16
+#define MAX_ENCODER_VALUE 15
 
 int32_t getBoundedEncoderPosition(Adafruit_seesaw *encoder){ //returns an int from 0 to 16
     int32_t pos = encoder->getEncoderPosition();
