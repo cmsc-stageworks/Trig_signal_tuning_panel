@@ -22,30 +22,8 @@ float last_frequency;
 float last_phase_shift;
 
 
+// moved read_knob to encoder.cpp
 
-uint8_t read_knob() {
-    //implement this please
-    //returns a value from 0 - 8
-    return 1;
-}
-/*
-    switch (read_knob()){
-        case 0:
-            break;
-        case 1:
-            break;
-        case 2:
-            break;
-        case 3:
-            break;
-        case 4:
-            break;
-        case 5:
-            break;
-        default:
-            
-    }
-*/
 float normalize(uint16_t x) {
     float MIN_NUM_HORIZ_PERIODS_IN_WIDTH = 0.8;
     uint16_t w = screen.width();
@@ -75,6 +53,10 @@ void draw_trig(Adafruit_ST7796S *screen, waveform target, waveform attempt, wave
     uint16_t old_current_attempt_y = denormalize(old_attempt.amplitude * sin(frequencyConverter[old_attempt.frequency] * ((float) old_attempt.phase_shift + normalize(0))));
     uint16_t current_target_y = denormalize(target.amplitude * sin(frequencyConverter[target.frequency] * ((float) target.phase_shift + normalize(0))));
     uint16_t current_attempt_y = denormalize(attempt.amplitude * sin(frequencyConverter[attempt.frequency] * ((float) attempt.phase_shift + normalize(0))));
+    screen->fillCircle(0, old_current_attempt_y, 2, 0);
+    screen->fillCircle(0, old_current_target_y, 2, 0);
+    screen->fillCircle(0, current_attempt_y, 2, screen->color565(242, 74, 98));
+    screen->fillCircle(0, current_target_y, 2, screen->color565(74, 242, 98));
     for(int x=1; x<w; x++){ //skip the first one because we just took care of it
         old_last_attempt_y = old_current_attempt_y;
         last_attempt_y = current_attempt_y;
@@ -108,7 +90,8 @@ void init_trig() {
 
 void loop_trig() {
     Serial.println("in trig loop");
-    if (has_current_puzzle&&check_puzzle_update()) {
+    if (has_current_puzzle&&check_puzzle_update()) { 
+        //check_puzzle_update is now deprecated because the puzzle now updates every frame, due to scrolling
         static waveform old_target = target_puzzle, last_attempt = current_attempt;
         draw_trig(&screen, target_puzzle, current_attempt, old_target, last_attempt);
         old_target = target_puzzle;
@@ -157,7 +140,7 @@ void set_waveform_puzzle(waveform puzzle) {
 waveform create_random_puzzle() {
     waveform puzzle;
     puzzle.frequency = random(1, 16);
-    puzzle.amplitude = .5f;//random(0, 10) / 10.0f;
+    puzzle.amplitude = random(1, 10) / 10.0f; //changed min from 0 to 1
     puzzle.phase_shift = 0;//random(0, 15);
     return puzzle;
 }

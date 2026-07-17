@@ -20,6 +20,10 @@ int32_t getBoundedEncoderPosition(Adafruit_seesaw *encoder);
 
 waveform get_user_input();
 
+uint16_t read_knob(Adafruit_seesaw *encoder);
+
+uint16_t read_bounded_knob(uint16_t knob);
+
 void override_user_input(waveform new_waveform);
 
 #endif
