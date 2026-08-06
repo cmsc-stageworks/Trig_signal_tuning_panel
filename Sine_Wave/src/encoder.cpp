@@ -13,22 +13,22 @@ int MAX_ENCODER_VALUES[3] = {16, 10, 16};
 
 void init_encoder() {
     Serial.begin(115200);
-    if(!encoders[0].begin(ENCODER1_ADDR)) {
+    if(!encoders[FREQ].begin(ENCODER1_ADDR)) {
         Serial.println("can't connect to frequency encoder");
     }
-    if(!encoders[1].begin(ENCODER2_ADDR)) {
+    if(!encoders[AMPL].begin(ENCODER2_ADDR)) {
         Serial.println("can't connect to amplitude encoder");
     }
-    if(!encoders[2].begin(ENCODER3_ADDR)) {
+    if(!encoders[PHSH].begin(ENCODER3_ADDR)) {
         Serial.println("can't connect to phase shift encoder");
     }
-    encoders[0].pinMode(SS_SWITCH, INPUT_PULLUP);
-    encoders[1].pinMode(SS_SWITCH, INPUT_PULLUP);
-    encoders[2].pinMode(SS_SWITCH, INPUT_PULLUP);
+    encoders[FREQ].pinMode(SS_SWITCH, INPUT_PULLUP);
+    encoders[AMPL].pinMode(SS_SWITCH, INPUT_PULLUP);
+    encoders[PHSH].pinMode(SS_SWITCH, INPUT_PULLUP);
 
-    encoders[0].enableEncoderInterrupt();
-    encoders[1].enableEncoderInterrupt();
-    encoders[2].enableEncoderInterrupt();
+    encoders[FREQ].enableEncoderInterrupt();
+    encoders[AMPL].enableEncoderInterrupt();
+    encoders[PHSH].enableEncoderInterrupt();
 
     /*This would be a really nice for loop if that doesn't break anything
     for (int i = 0; i < 3; i++) {
@@ -70,7 +70,7 @@ int32_t getBoundedEncoderPosition(Adafruit_seesaw *encoder){ //returns an int fr
 waveform get_user_input() {
     // return {getBoundedEncoderPosition(&frequency_encoder), getBoundedEncoderPosition(&amplitude_encoder), getBoundedEncoderPosition(&phase_shift_encoder)};
     //return {getBoundedEncoderPosition(&frequency_encoder), getBoundedEncoderPosition(&amplitude_encoder), 0};
-    return {read_bounded_knob(0), read_bounded_knob(1), read_bounded_knob(2)};
+    return {read_bounded_knob(FREQ), read_bounded_knob(AMPL), read_bounded_knob(PHSH)};
 }
 
 // uint16_t read_knob(Adafruit_seesaw *encoder) {
@@ -79,18 +79,19 @@ waveform get_user_input() {
 //     //returns a position 0 to 15, looping
 // }
 
-uint16_t read_bounded_knob(uint16_t encoder) {
+uint16_t read_bounded_knob(encoder encoder) {
     //returns a bounded position for the given knob, dynamically assigning the max value
-    uint16_t pos = encoders[encoder].getEncoderPosition();
-    //int32_t unbounded_pos = pos;
+    int32_t pos = encoders[encoder].getEncoderPosition();
+    int32_t unbounded_pos = pos;
     pos = (pos >= 0) ? pos : 0;
     pos = (pos <= MAX_ENCODER_VALUES[encoder]) ? pos : MAX_ENCODER_VALUES[encoder];
-    /*if (pos != unbounded_pos) {
-        encoders[knob].setEncoderPosition(pos);
-    }*/
-    encoders[encoder].setEncoderPosition(pos);
+    if (pos != unbounded_pos) {
+        encoders[encoder].setEncoderPosition(pos);
+    }
     return pos;
     //Is it really so computationally efficient to check that the positions differ, rather than blindly writing it every time anyway?
+    //Yes, because most of the time the encoder value won't have changed between calls and I2C writes take a long time compared to CPU cycles.
+    //There'd be no point in avoiding the writes if this wasn't an external bus
 }
 
 /*int32_t read_knob() { //you could hard-code three methods for the knobs, but I like the array solution
@@ -117,7 +118,7 @@ uint16_t read_bounded_knob(uint16_t encoder) {
 */
 
 void override_user_input(waveform new_waveform) {
-    encoders[0].setEncoderPosition(new_waveform.frequency);
-    encoders[1].setEncoderPosition(new_waveform.amplitude);
-    encoders[2].setEncoderPosition(new_waveform.phase_shift);
+    encoders[FREQ].setEncoderPosition(new_waveform.frequency);
+    encoders[AMPL].setEncoderPosition(new_waveform.amplitude);
+    encoders[PHSH].setEncoderPosition(new_waveform.phase_shift);
 }
