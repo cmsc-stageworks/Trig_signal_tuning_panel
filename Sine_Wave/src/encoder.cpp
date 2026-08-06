@@ -3,6 +3,7 @@
 
 Adafruit_seesaw encoders[3];
 // frequency, amplitude, phase shift
+enum encoder {FREQ = 0, AMPL = 1, PHSH = 2};
 
 int MAX_ENCODER_VALUES[3] = {16, 10, 16};
 
@@ -47,7 +48,6 @@ void init_encoder() {
     Serial.println("encoders initialized");
 }
 
-//encoders are 4 times a click
 void loop_encoder() {
     //needs...something
     return;
@@ -70,25 +70,25 @@ int32_t getBoundedEncoderPosition(Adafruit_seesaw *encoder){ //returns an int fr
 waveform get_user_input() {
     // return {getBoundedEncoderPosition(&frequency_encoder), getBoundedEncoderPosition(&amplitude_encoder), getBoundedEncoderPosition(&phase_shift_encoder)};
     //return {getBoundedEncoderPosition(&frequency_encoder), getBoundedEncoderPosition(&amplitude_encoder), 0};
-    return {read_bounded_knob(0), read_bounded_knob(1)/10.0f, 0/*read_bounded_knob(2)-1 (zer-based)*/};
+    return {read_bounded_knob(0), read_bounded_knob(1), read_bounded_knob(2)};
 }
 
-uint16_t read_knob(Adafruit_seesaw *encoder) {
-    uint16_t knob_position = encoder->getEncoderPosition();
-    return knob_position%16;
-    //returns a position 0 to 15, looping
-}
+// uint16_t read_knob(Adafruit_seesaw *encoder) {
+//     uint16_t knob_position = encoder->getEncoderPosition();
+//     return knob_position%16;
+//     //returns a position 0 to 15, looping
+// }
 
-uint16_t read_bounded_knob(uint16_t knob) {
+uint16_t read_bounded_knob(uint16_t encoder) {
     //returns a bounded position for the given knob, dynamically assigning the max value
-    uint16_t pos = encoders[knob].getEncoderPosition();
+    uint16_t pos = encoders[encoder].getEncoderPosition();
     //int32_t unbounded_pos = pos;
     pos = (pos >= 0) ? pos : 0;
-    pos = (pos <= MAX_ENCODER_VALUES[knob]) ? pos : MAX_ENCODER_VALUES[knob];
+    pos = (pos <= MAX_ENCODER_VALUES[encoder]) ? pos : MAX_ENCODER_VALUES[encoder];
     /*if (pos != unbounded_pos) {
         encoders[knob].setEncoderPosition(pos);
     }*/
-    encoders[knob].setEncoderPosition(pos);
+    encoders[encoder].setEncoderPosition(pos);
     return pos;
     //Is it really so computationally efficient to check that the positions differ, rather than blindly writing it every time anyway?
 }

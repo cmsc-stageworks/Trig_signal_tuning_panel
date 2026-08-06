@@ -51,10 +51,10 @@ void draw_trig(Adafruit_ST7796S *screen, waveform target, waveform attempt, wave
     uint16_t old_last_attempt_y = 0;
     uint16_t last_target_y = 0;
     uint16_t last_attempt_y = 0;
-    uint16_t old_current_target_y = denormalize(old_target.amplitude * sin(frequencyConverter[old_target.frequency] * ((float) old_target.phase_shift + phase_offset + normalize(0))));
-    uint16_t old_current_attempt_y = denormalize(old_attempt.amplitude * sin(frequencyConverter[old_attempt.frequency] * ((float) old_attempt.phase_shift + phase_offset + normalize(0))));
-    uint16_t current_target_y = denormalize(target.amplitude * sin(frequencyConverter[target.frequency] * ((float) target.phase_shift + phase_offset + normalize(0) + phase_offset_delta)));
-    uint16_t current_attempt_y = denormalize(attempt.amplitude * sin(frequencyConverter[attempt.frequency] * ((float) attempt.phase_shift + phase_offset + normalize(0) + phase_offset_delta)));
+    uint16_t old_current_target_y = denormalize((old_target.amplitude / 10.0f) * sin(frequencyConverter[old_target.frequency] * ((float) old_target.phase_shift + phase_offset + normalize(0))));
+    uint16_t old_current_attempt_y = denormalize((old_attempt.amplitude / 10.0f) * sin(frequencyConverter[old_attempt.frequency] * ((float) old_attempt.phase_shift + phase_offset + normalize(0))));
+    uint16_t current_target_y = denormalize((target.amplitude / 10.0f) * sin(frequencyConverter[target.frequency] * ((float) target.phase_shift + phase_offset + normalize(0) + phase_offset_delta)));
+    uint16_t current_attempt_y = denormalize((attempt.amplitude / 10.0f) * sin(frequencyConverter[attempt.frequency] * ((float) attempt.phase_shift + phase_offset + normalize(0) + phase_offset_delta)));
     screen->fillCircle(0, old_current_attempt_y, 2, 0);
     screen->fillCircle(0, old_current_target_y, 2, 0);
     screen->fillCircle(0, current_attempt_y, 2, screen->color565(242, 74, 98));
@@ -62,12 +62,12 @@ void draw_trig(Adafruit_ST7796S *screen, waveform target, waveform attempt, wave
     for(int x=1; x<w; x++){ //skip the first one because we just took care of it
         old_last_attempt_y = old_current_attempt_y;
         last_attempt_y = current_attempt_y;
-        old_current_attempt_y = denormalize(old_attempt.amplitude * sin(frequencyConverter[old_attempt.frequency] * ((float) old_attempt.phase_shift + phase_offset + normalize(x))));
-        current_attempt_y = denormalize(attempt.amplitude * sin(frequencyConverter[attempt.frequency] * ((float) attempt.phase_shift + phase_offset + normalize(x) + phase_offset_delta)));
+        old_current_attempt_y = denormalize((old_attempt.amplitude / 10.0f) * sin(frequencyConverter[old_attempt.frequency] * ((float) old_attempt.phase_shift + phase_offset + normalize(x))));
+        current_attempt_y = denormalize((attempt.amplitude / 10.0f) * sin(frequencyConverter[attempt.frequency] * ((float) attempt.phase_shift + phase_offset + normalize(x) + phase_offset_delta)));
         old_last_target_y = old_current_target_y;
         last_target_y = current_target_y;
-        old_current_target_y = denormalize(old_target.amplitude * sin(frequencyConverter[old_target.frequency] * ((float) old_target.phase_shift + phase_offset + normalize(x))));
-        current_target_y = denormalize(target.amplitude * sin(frequencyConverter[target.frequency] * ((float) target.phase_shift + phase_offset + normalize(x) + phase_offset_delta)));
+        old_current_target_y = denormalize((old_target.amplitude / 10.0f) * sin(frequencyConverter[old_target.frequency] * ((float) old_target.phase_shift + phase_offset + normalize(x))));
+        current_target_y = denormalize((target.amplitude / 10.0f) * sin(frequencyConverter[target.frequency] * ((float) target.phase_shift + phase_offset + normalize(x) + phase_offset_delta)));
         screen->drawLine(x-1, old_last_target_y, x, old_current_target_y, 0); //draw over the last line
         if (((x/(old_attempt.frequency >= 8 ? 1 : 3)) % 2) == 0) {
             screen->drawLine(x-1, old_last_attempt_y, x, old_current_attempt_y, 0);
@@ -145,7 +145,7 @@ void set_waveform_puzzle(waveform puzzle) {
 waveform create_random_puzzle() {
     waveform puzzle;
     puzzle.frequency = random(1, 16);
-    puzzle.amplitude = random(1, 10) / 10.0f; //changed min from 0 to 1
+    puzzle.amplitude = random(1, 10); //changed min from 0 to 1
     puzzle.phase_shift = random(0, 15);
     return puzzle;
 }

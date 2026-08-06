@@ -5,7 +5,7 @@
 
 struct waveform {
     uint16_t frequency; //1-15
-    float amplitude; //0-1
+    float amplitude; //1-10
     uint16_t phase_shift; //0-15
 };
 
