@@ -19,8 +19,7 @@ void init_encoder() {
         Serial.println("can't connect to amplitude encoder");
     }
     if(!encoders[2].begin(ENCODER3_ADDR)) {
-        Serial.println("phase shift encoder not implemented yet");
-        //Serial.println("can't connect to phase shift encoder");
+        Serial.println("can't connect to phase shift encoder");
     }
     encoders[0].pinMode(SS_SWITCH, INPUT_PULLUP);
     encoders[1].pinMode(SS_SWITCH, INPUT_PULLUP);
@@ -118,7 +117,7 @@ uint16_t read_bounded_knob(uint16_t knob) {
 */
 
 void override_user_input(waveform new_waveform) {
-    encoders[0].setEncoderPosition(new_waveform.frequency * 4);
-    encoders[1].setEncoderPosition(new_waveform.amplitude * 4);
-    encoders[2].setEncoderPosition(new_waveform.phase_shift * 4);
+    encoders[0].setEncoderPosition(new_waveform.frequency);
+    encoders[1].setEncoderPosition(new_waveform.amplitude);
+    encoders[2].setEncoderPosition(new_waveform.phase_shift);
 }

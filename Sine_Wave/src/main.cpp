@@ -8,6 +8,7 @@
 #include <SdFat.h>
 #include "trig.h"
 #include "encoder.h"
+#include "global_flags.h"
 
 extern SPIClass mainBoardSpi;
 
@@ -16,8 +17,7 @@ void setup() {
   MainBoardStart(false);
   init_trig();
   init_encoder();
-  waveform puzzle = {5, 0.5f, 0};
-  set_waveform_puzzle(puzzle);
+  if (DEMOMODE) {set_waveform_puzzle(create_random_puzzle());}
   Serial.println("setup complete");
 }
 

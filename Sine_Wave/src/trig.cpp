@@ -42,6 +42,8 @@ uint16_t denormalize(float y) { //y goes from -1 to 1
 static const uint8_t frequencyConverter[16] = {0,1,2,3,4,5,6,7,8,9,10,12,14,16,18,20};
 
 void draw_trig(Adafruit_ST7796S *screen, waveform target, waveform attempt, waveform old_target, waveform old_attempt) {
+    static uint16_t phase_offset = 0;
+    #define phase_offset_delta SCANSPEED
     int h = screen->height();
     int w = screen->width();
     //draw waveforms
@@ -49,10 +51,10 @@ void draw_trig(Adafruit_ST7796S *screen, waveform target, waveform attempt, wave
     uint16_t old_last_attempt_y = 0;
     uint16_t last_target_y = 0;
     uint16_t last_attempt_y = 0;
-    uint16_t old_current_target_y = denormalize(old_target.amplitude * sin(frequencyConverter[old_target.frequency] * ((float) old_target.phase_shift + normalize(0))));
-    uint16_t old_current_attempt_y = denormalize(old_attempt.amplitude * sin(frequencyConverter[old_attempt.frequency] * ((float) old_attempt.phase_shift + normalize(0))));
-    uint16_t current_target_y = denormalize(target.amplitude * sin(frequencyConverter[target.frequency] * ((float) target.phase_shift + normalize(0))));
-    uint16_t current_attempt_y = denormalize(attempt.amplitude * sin(frequencyConverter[attempt.frequency] * ((float) attempt.phase_shift + normalize(0))));
+    uint16_t old_current_target_y = denormalize(old_target.amplitude * sin(frequencyConverter[old_target.frequency] * ((float) old_target.phase_shift + phase_offset + normalize(0))));
+    uint16_t old_current_attempt_y = denormalize(old_attempt.amplitude * sin(frequencyConverter[old_attempt.frequency] * ((float) old_attempt.phase_shift + phase_offset + normalize(0))));
+    uint16_t current_target_y = denormalize(target.amplitude * sin(frequencyConverter[target.frequency] * ((float) target.phase_shift + phase_offset + normalize(0) + phase_offset_delta)));
+    uint16_t current_attempt_y = denormalize(attempt.amplitude * sin(frequencyConverter[attempt.frequency] * ((float) attempt.phase_shift + phase_offset + normalize(0) + phase_offset_delta)));
     screen->fillCircle(0, old_current_attempt_y, 2, 0);
     screen->fillCircle(0, old_current_target_y, 2, 0);
     screen->fillCircle(0, current_attempt_y, 2, screen->color565(242, 74, 98));
@@ -60,12 +62,12 @@ void draw_trig(Adafruit_ST7796S *screen, waveform target, waveform attempt, wave
     for(int x=1; x<w; x++){ //skip the first one because we just took care of it
         old_last_attempt_y = old_current_attempt_y;
         last_attempt_y = current_attempt_y;
-        old_current_attempt_y = denormalize(old_attempt.amplitude * sin(frequencyConverter[old_attempt.frequency] * ((float) old_attempt.phase_shift + normalize(x))));
-        current_attempt_y = denormalize(attempt.amplitude * sin(frequencyConverter[attempt.frequency] * ((float) attempt.phase_shift + normalize(x))));
+        old_current_attempt_y = denormalize(old_attempt.amplitude * sin(frequencyConverter[old_attempt.frequency] * ((float) old_attempt.phase_shift + phase_offset + normalize(x))));
+        current_attempt_y = denormalize(attempt.amplitude * sin(frequencyConverter[attempt.frequency] * ((float) attempt.phase_shift + phase_offset + normalize(x) + phase_offset_delta)));
         old_last_target_y = old_current_target_y;
         last_target_y = current_target_y;
-        old_current_target_y = denormalize(old_target.amplitude * sin(frequencyConverter[old_target.frequency] * ((float) old_target.phase_shift + normalize(x))));
-        current_target_y = denormalize(target.amplitude * sin(frequencyConverter[target.frequency] * ((float) target.phase_shift + normalize(x))));
+        old_current_target_y = denormalize(old_target.amplitude * sin(frequencyConverter[old_target.frequency] * ((float) old_target.phase_shift + phase_offset + normalize(x))));
+        current_target_y = denormalize(target.amplitude * sin(frequencyConverter[target.frequency] * ((float) target.phase_shift + phase_offset + normalize(x) + phase_offset_delta)));
         screen->drawLine(x-1, old_last_target_y, x, old_current_target_y, 0); //draw over the last line
         if (((x/(old_attempt.frequency >= 8 ? 1 : 3)) % 2) == 0) {
             screen->drawLine(x-1, old_last_attempt_y, x, old_current_attempt_y, 0);
@@ -75,6 +77,7 @@ void draw_trig(Adafruit_ST7796S *screen, waveform target, waveform attempt, wave
             screen->drawLine(x-1, last_attempt_y, x, current_attempt_y, screen->color565(242, 74, 98));
         }
     }
+    phase_offset = (phase_offset + 1) % 5040;
 }
 
 void init_trig() {
@@ -119,12 +122,15 @@ bool check_puzzle_update() {
 }
 
 void check_puzzle_completion() {
-    if ((current_attempt.amplitude == target_puzzle.amplitude) && (current_attempt.frequency == target_puzzle.frequency)) {
-        //doesn't check phase shift yet
+    if (
+        (current_attempt.amplitude == target_puzzle.amplitude) && 
+        (current_attempt.frequency == target_puzzle.frequency) && 
+        ((current_attempt.phase_shift - target_puzzle.phase_shift) % frequencyConverter[target_puzzle.frequency] == 0)) 
+        {
+
         has_current_puzzle = false;
         if(DEMOMODE){
             set_waveform_puzzle(create_random_puzzle());
-
         }
         Serial.println("puzzle complete!");
         //report puzzle completion somehow
@@ -134,14 +140,13 @@ void check_puzzle_completion() {
 void set_waveform_puzzle(waveform puzzle) {
     target_puzzle = puzzle;
     has_current_puzzle = true;
-    last_amplitude = 0; //hack to force screen update
 }
 
 waveform create_random_puzzle() {
     waveform puzzle;
     puzzle.frequency = random(1, 16);
     puzzle.amplitude = random(1, 10) / 10.0f; //changed min from 0 to 1
-    puzzle.phase_shift = 0;//random(0, 15);
+    puzzle.phase_shift = random(0, 15);
     return puzzle;
 }
 
