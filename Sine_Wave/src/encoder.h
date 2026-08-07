@@ -12,6 +12,9 @@
 #define SS_SWITCH 24 //hardware value
 #define SS_NEOPIX 6
 
+// frequency, amplitude, phase shift
+enum encoder {FREQ = 0, AMPL = 1, PHSH = 2};
+
 void init_encoder();
 
 void loop_encoder();
@@ -22,7 +25,7 @@ waveform get_user_input();
 
 uint16_t read_knob(Adafruit_seesaw *encoder);
 
-uint16_t read_bounded_knob(uint16_t knob);
+uint16_t read_bounded_knob(encoder knob);
 
 void override_user_input(waveform new_waveform);
 

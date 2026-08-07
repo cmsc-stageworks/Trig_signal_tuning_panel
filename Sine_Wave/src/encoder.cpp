@@ -2,12 +2,13 @@
 #include <Adafruit_seesaw.h>
 
 Adafruit_seesaw encoders[3];
-// frequency, amplitude, phase shift
-enum encoder {FREQ = 0, AMPL = 1, PHSH = 2};
 
 //these are from waveform.h
-int MAX_ENCODER_VALUES[3] = {16, 10, 16};
+int MAX_ENCODER_VALUES[3] = {15, 10, 15};
+int MAX_ENCODER_OVERRIDES[3] = {15, 10, 0};
 int MIN_ENCODER_VALUES[3] = {1, 1, 0};
+int MIN_ENCODER_OVERRIDES[3] = {1, 1, 15};
+//phase shift encoder wraps around
 
 //Adafruit_seesaw frequency_encoder;
 //Adafruit_seesaw amplitude_encoder;
@@ -85,8 +86,8 @@ uint16_t read_bounded_knob(encoder encoder) {
     //returns a bounded position for the given knob, dynamically assigning the max value
     int32_t pos = encoders[encoder].getEncoderPosition();
     int32_t unbounded_pos = pos;
-    pos = (pos >= MIN_ENCODER_VALUES[encoder]) ? pos : MIN_ENCODER_VALUES[encoder];
-    pos = (pos <= MAX_ENCODER_VALUES[encoder]) ? pos : MAX_ENCODER_VALUES[encoder];
+    pos = (pos >= MIN_ENCODER_VALUES[encoder]) ? pos : MIN_ENCODER_OVERRIDES[encoder];
+    pos = (pos <= MAX_ENCODER_VALUES[encoder]) ? pos : MAX_ENCODER_OVERRIDES[encoder];
     if (pos != unbounded_pos) {
         encoders[encoder].setEncoderPosition(pos);
     }

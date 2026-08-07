@@ -1,2 +1,2 @@
 #define DEMOMODE true
-#define SCANSPEED 1
+#define SCANSPEED 2
